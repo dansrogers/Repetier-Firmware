@@ -193,7 +193,7 @@ bool Printer::isPositionAllowed(float x,float y,float z)
     if(isNoDestinationCheck())  return true;
     bool allowed = true;
 #if DRIVE_SYSTEM == DELTA
-    allowed &= (z >= 0) && (z <= zLength + 0.05 + ENDSTOP_Z_BACK_ON_HOME);
+    allowed &= (z >= -100) && (z <= zLength + 0.05 + ENDSTOP_Z_BACK_ON_HOME);
     allowed &= (x * x + y * y <= deltaMaxRadiusSquared);
 #endif // DRIVE_SYSTEM
     if(!allowed)
@@ -1351,6 +1351,7 @@ float Printer::runZMaxProbe()
 }
 #endif
 
+void accelerometer_status();
 #if FEATURE_Z_PROBE
 float Printer::runZProbe(bool first,bool last,uint8_t repeat,bool runStartScript)
 {
@@ -1386,7 +1387,19 @@ float Printer::runZProbe(bool first,bool last,uint8_t repeat,bool runStartScript
         //PrintLine::moveRelativeDistanceInSteps(-offx,-offy,0,0,EEPROM::zProbeXYSpeed(),true,true);
         waitForZProbeStart();
         setZProbingActive(true);
+
+        accelerometer_status(); //Clear Interrupt.
+        accelerometer_status(); //Clear Interrupt.
+        //Com::printF(Com::tZProbeState); Com::print(Printer::isZProbeHit() ? 'H' : 'L'); Com::println();
+        for(int i=0;i<10;i++)
+        {
+          if( ! Printer::isZProbeHit() ) break;
+          Com::printFLN(PSTR("delay 100ms."));
+          delay(100);
+        }
+        //Com::printFLN(PSTR("zprobing..."));
         PrintLine::moveRelativeDistanceInSteps(0, 0, -probeDepth, 0, EEPROM::zProbeSpeed(), true, true);
+        //Com::printF(Com::tZProbeState); Com::print(Printer::isZProbeHit() ? 'H' : 'L'); Com::println();
         if(stepsRemainingAtZHit < 0)
         {
             Com::printErrorFLN(Com::tZProbeFailed);
@@ -1425,6 +1438,7 @@ float Printer::runZProbe(bool first,bool last,uint8_t repeat,bool runStartScript
     distance += zCorr;
 #endif
     Com::printF(Com::tZProbe, distance);
+    Com::printF(Com::tZProbeSteps,(distance * 80) - (Z_PROBE_BED_DISTANCE * 80));
     Com::printF(Com::tSpaceXColon, realXPosition());
 #if DISTORTION_CORRECTION
     Com::printF(Com::tSpaceYColon, realYPosition());
@@ -1432,6 +1446,8 @@ float Printer::runZProbe(bool first,bool last,uint8_t repeat,bool runStartScript
 #else
     Com::printFLN(Com::tSpaceYColon, realYPosition());
 #endif
+    updateCurrentPosition(false);
+    Commands::printCurrentPosition(PSTR("M114 "));
     // Go back to start position
     PrintLine::moveRelativeDistanceInSteps(0, 0, lastCorrection - currentPositionSteps[Z_AXIS], 0, EEPROM::zProbeSpeed(), true, false);
     //PrintLine::moveRelativeDistanceInSteps(offx,offy,0,0,EEPROM::zProbeXYSpeed(),true,true);

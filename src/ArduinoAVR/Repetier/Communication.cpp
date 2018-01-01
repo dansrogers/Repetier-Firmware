@@ -22,7 +22,7 @@
 #include "Repetier.h"
 
 #if DRIVE_SYSTEM == DELTA
-FSTRINGVALUE(Com::tFirmware,"FIRMWARE_NAME:Repetier_" REPETIER_VERSION " FIRMWARE_URL:https://github.com/repetier/Repetier-Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Delta EXTRUDER_COUNT:" XSTR(NUM_EXTRUDER) " REPETIER_PROTOCOL:3")
+FSTRINGVALUE(Com::tFirmware,"FIRMWARE_NAME:Repetier_"REPETIER_VERSION" FIRMWARE_DATE:"FIRMWARE_DATE" MACHINE_TYPE:"UI_TEXT_PRINTER_READY" ")
 #else
 #if DRIVE_SYSTEM == CARTESIAN
 FSTRINGVALUE(Com::tFirmware,"FIRMWARE_NAME:Repetier_" REPETIER_VERSION " FIRMWARE_URL:https://github.com/repetier/Repetier-Firmware/ PROTOCOL_VERSION:1.0 MACHINE_TYPE:Mendel EXTRUDER_COUNT:" XSTR(NUM_EXTRUDER) " REPETIER_PROTOCOL:3")
@@ -85,6 +85,7 @@ FSTRINGVALUE(Com::tSlash,"/")
 FSTRINGVALUE(Com::tSpaceSlash," /")
 FSTRINGVALUE(Com::tSpeedMultiply,"SpeedMultiply:")
 FSTRINGVALUE(Com::tFlowMultiply,"FlowMultiply:")
+FSTRINGVALUE(Com::tHorizontalRadius,"H. Radius:")
 FSTRINGVALUE(Com::tFanspeed,"Fanspeed:")
 FSTRINGVALUE(Com::tPrintedFilament,"Printed filament:")
 FSTRINGVALUE(Com::tPrintingTime,"Printing time:")
@@ -209,6 +210,7 @@ FSTRINGVALUE(Com::tDBGMissedSteps,"Missed steps:")
 #endif // DEBUG_STEPCOUNT
 #if FEATURE_Z_PROBE
 FSTRINGVALUE(Com::tZProbe,"Z-probe:")
+FSTRINGVALUE(Com::tZProbeSteps," Step Variation from Probe to bed Distance:")
 FSTRINGVALUE(Com::tZProbeAverage,"Z-probe average height:")
 FSTRINGVALUE(Com::tZProbeZReset,"Reset Z height")
 FSTRINGVALUE(Com::tZProbeState,"Z-probe state:")
@@ -262,6 +264,7 @@ FSTRINGVALUE(Com::tEPR1,"EPR:1 ")
 FSTRINGVALUE(Com::tEPR2,"EPR:2 ")
 FSTRINGVALUE(Com::tEPR3,"EPR:3 ")
 FSTRINGVALUE(Com::tEPRBaudrate,"Baudrate")
+FSTRINGVALUE(Com::tEPRAdvancedUser, "Advanced User")
 FSTRINGVALUE(Com::tEPRFilamentPrinted,"Filament printed [m]")
 FSTRINGVALUE(Com::tEPRPrinterActive,"Printer active [s]")
 FSTRINGVALUE(Com::tEPRMaxInactiveTime,"Max. inactive time [ms,0=off]")

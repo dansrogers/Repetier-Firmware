@@ -1503,7 +1503,26 @@ pins
 #define DIO81_WPORT    PORTD
 #define DIO81_DDR    DDRD
 #define DIO81_PWM    NULL
-
+#define DIO82_PIN    PIND5
+#define DIO82_RPORT   PIND
+#define DIO82_WPORT    PORTD
+#define DIO82_DDR    DDRD
+#define DIO82_PWM    NULL
+#define DIO83_PIN    PIND6
+#define DIO83_RPORT   PIND
+#define DIO83_WPORT    PORTD
+#define DIO83_DDR    DDRD
+#define DIO83_PWM    NULL
+#define DIO84_PIN    PINH2
+#define DIO84_RPORT   PINH
+#define DIO84_WPORT    PORTH
+#define DIO84_DDR    DDRH
+#define DIO84_PWM    NULL
+#define DIO85_PIN    PINH7
+#define DIO85_RPORT   PINH
+#define DIO85_WPORT    PORTH
+#define DIO85_DDR    DDRH
+#define DIO85_PWM    NULL
 #endif
 
 #undef PA0
@@ -2054,7 +2073,7 @@ pins
 #define	MOSI				DIO10
 #define	SS					8
 
-#if MOTHERBOARD!=8 && MOTHERBOARD!=9
+#if MOTHERBOARD != 8 && MOTHERBOARD != 9 && MOTHERBOARD != 88
 // change for your board
 #define	DEBUG_LED		DIO31 /* led D5 red */
 

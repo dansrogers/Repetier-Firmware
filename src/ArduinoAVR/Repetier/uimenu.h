@@ -222,22 +222,27 @@ for 2 row displays. You can add additional pages or change the default pages lik
 #elif UI_ROWS >= 4
  #if HAVE_HEATED_BED
  #if NUM_EXTRUDER > 0
-   UI_PAGE4(ui_page1,cTEMP "%ec/%Ec" cDEG "B%eB/%Eb" cDEG,"Z:%x2     Buf:%oB","Mul: %om   Flow: %of","%os")
+   UI_PAGE4(ui_page1,"NOZ:%ec Target:%Ec","BED:%eb Target:%Eb","Speed:%om%%% Flow:%of%%%","%os")
 #else
    UI_PAGE4(ui_page1,"B%eB/%Eb" cDEG,"Z:%x2     Buf:%oB","Mul: %om   Flow: %of","%os")
 #endif
    //UI_PAGE4(ui_page1,UI_TEXT_PAGE_EXTRUDER,UI_TEXT_PAGE_BED,UI_TEXT_PAGE_BUFFER,"%os");
  #else
  #if NUM_EXTRUDER>0
-   UI_PAGE4(ui_page1,UI_TEXT_PAGE_EXTRUDER,"Z:%x2 mm",UI_TEXT_PAGE_BUFFER,"%os")
+   UI_PAGE4(ui_page1,"NOZ:%ec Target:%Ec","Speed:%om%%% Flow:%of%%%","Z:%x2 mm","%os")
    #else
    UI_PAGE4(ui_page1,"","Z:%x2 mm",UI_TEXT_PAGE_BUFFER,"%os")
    #endif
  #endif
   UI_PAGE4(ui_page2,"X:%x0 mm","Y:%x1 mm","Z:%x2 mm","%os")
 //UI_PAGE4(ui_page2,"dX:%y0 mm %sX","dY:%y1 mm %sY","dZ:%y2 mm %sZ","%os");
+
+// Edited page_3 for firmware info so don't need to re-boot to see version etc
+UI_PAGE4(ui_page3,UI_TEXT_PAGE_FWVERSION,UI_TEXT_PAGE_FWDATE,"Printer Model",UI_TEXT_PRINTER_READY)
+
+/*
  #if NUM_EXTRUDER>0
-    UI_PAGE4(ui_page3,UI_TEXT_PAGE_EXTRUDER1
+    UI_PAGE4(ui_page3,UI_TEXT_PAGE_FWVERSION
  #else
     UI_PAGE4(ui_page3
  #endif
@@ -260,21 +265,32 @@ for 2 row displays. You can add additional pages or change the default pages lik
    ,"","","","%os"
  #endif
  )
+ */
  #if EEPROM_MODE!=0
   UI_PAGE4(ui_page4,UI_TEXT_PRINT_TIME,"%Ut",UI_TEXT_PRINT_FILAMENT,"%Uf m")
-  #define UI_PRINTTIME_PAGES ,&ui_page4
+  #define UI_PRINTTIME_PAGES &ui_page4
   #define UI_PRINTTIME_COUNT 1
  #else
   #define UI_PRINTTIME_PAGES
   #define UI_PRINTTIME_COUNT 0
  #endif
 /*
+UI_PAGE4(ui_page5,UI_TEXT_FIRMWARE_VERSION, UI_TEXT_FIRMWARE_DATE, "LINE 3", "LINE4"
+ */
+ 
+ 
+ 
+/*
 Merge pages together. Use the following pattern:
 #define UI_PAGES {&name1,&name2,&name3}
 */
- #define UI_PAGES {&ui_page1,&ui_page2,&ui_page3 UI_PRINTTIME_PAGES}
+#define UI_PAGES {&ui_page1,&ui_page2,&ui_page3, UI_PRINTTIME_PAGES} //#define UI_PAGES {&ui_page1, UI_PRINTTIME_PAGES}
 // How many pages do you want to have. Minimum is 1.
- #define UI_NUM_PAGES 3+UI_PRINTTIME_COUNT
+ #define UI_NUM_PAGES 3+UI_PRINTTIME_COUNT //3+UI_PRINTTIME_COUNT
+ 
+ 
+ 
+ 
 #else
 #if HAVE_HEATED_BED
 UI_PAGE2(ui_page1,UI_TEXT_PAGE_EXTRUDER,UI_TEXT_PAGE_BED)
@@ -289,8 +305,11 @@ Merge pages together. Use the following pattern:
 */
 #define UI_PAGES {&ui_page1,&ui_page2,&ui_page3}
 // How many pages do you want to have. Minimum is 1.
-#define UI_NUM_PAGES 3
+#define UI_NUM_PAGES 1  //3
 #endif
+
+
+
 /* ============ MENU definition ================
 
 The menu works the same as pages. In addion you need to define what the lines do
@@ -357,7 +376,8 @@ UI_MENU_ACTIONCOMMAND(ui_menu_back,UI_TEXT_BACK,UI_ACTION_BACK)
 #define UI_MENU_ADDCONDBACK
 #define UI_MENU_BACKCNT 0
 #endif
-UI_MENU_ACTIONCOMMAND_FILTER(ui_menu_home_all,UI_TEXT_HOME_ALL,UI_ACTION_HOME_ALL,0,MENU_MODE_PRINTING)
+//UI_MENU_ACTIONCOMMAND_FILTER(ui_menu_home_all,UI_TEXT_HOME_ALL,UI_ACTION_HOME_ALL,0,MENU_MODE_PRINTING)
+UI_MENU_ACTIONCOMMAND(ui_menu_home_all,UI_TEXT_HOME_ALL,UI_ACTION_HOME_ALL)
 UI_MENU_ACTIONCOMMAND_FILTER(ui_menu_home_x,UI_TEXT_HOME_X,UI_ACTION_HOME_X,0,MENU_MODE_PRINTING)
 UI_MENU_ACTIONCOMMAND_FILTER(ui_menu_home_y,UI_TEXT_HOME_Y,UI_ACTION_HOME_Y,0,MENU_MODE_PRINTING)
 UI_MENU_ACTIONCOMMAND_FILTER(ui_menu_home_z,UI_TEXT_HOME_Z,UI_ACTION_HOME_Z,0,MENU_MODE_PRINTING)
@@ -392,12 +412,30 @@ UI_MENU(ui_menu_positions,UI_MENU_POSITIONS,5 + 3 * UI_SPEED + UI_MENU_BACKCNT)
 UI_MENU(ui_menu_positions,UI_MENU_POSITIONS,2 + 3 * UI_SPEED + UI_MENU_BACKCNT)
 #endif
 
+// **** Clean Bed First menu
+UI_MENU_ACTIONCOMMAND(ui_menu_clean_bed1,UI_TEXT_CLEAN_BED1, UI_ACTION_CLEAN_BED1)
+UI_MENU_ACTIONCOMMAND(ui_menu_clean_bed2,UI_TEXT_CLEAN_BED2, UI_ACTION_CLEAN_BED2)
+UI_MENU_ACTIONCOMMAND(ui_menu_ok,UI_TEXT_OK, UI_ACTION_AUTOLEVEL_FULL)
+#define UI_MENU_FULL_CAL {UI_MENU_ADDCONDBACK &ui_menu_clean_bed1,&ui_menu_clean_bed2,&ui_menu_ok}
+UI_MENU(ui_menu_clean_bed,UI_MENU_FULL_CAL,3 + UI_MENU_BACKCNT)
+UI_MENU_SUBMENU(ui_menu_level,UI_TEXT_AUTOLEVEL_FULL,ui_menu_clean_bed)
+
 // **** Delta calibration menu
 #if Z_HOME_DIR > 0
 UI_MENU_ACTIONCOMMAND(ui_menu_set_measured_origin,UI_TEXT_SET_MEASURED_ORIGIN,UI_ACTION_SET_MEASURED_ORIGIN)
-#define UI_MENU_DELTA {UI_MENU_ADDCONDBACK &ui_menu_home_all UI_SPEED_Z_NOTEST,&ui_menu_set_measured_origin}
-UI_MENU(ui_menu_delta,UI_MENU_DELTA,2 + UI_SPEED + UI_MENU_BACKCNT)
+//UI_MENU_ACTIONCOMMAND(ui_menu_autolevel_full,UI_TEXT_AUTOLEVEL_FULL,UI_ACTION_AUTOLEVEL_FULL)
+UI_MENU_CHANGEACTION(ui_menu_horizontal_radius,UI_TEXT_HORIZONTAL_RADIUS,UI_ACTION_HORIZONTAL_RADIUS)
+#define UI_CALIBRATE ,&ui_menu_go_cal
+#define UI_MENU_DELTA {UI_MENU_ADDCONDBACK &ui_menu_level,&ui_menu_horizontal_radius,&ui_menu_home_all UI_SPEED_Z,&ui_menu_set_measured_origin}
+UI_MENU(ui_menu_delta,UI_MENU_DELTA,4 + UI_SPEED + UI_MENU_BACKCNT)
 #endif
+
+// **** Please Wait menu changed to pepare
+UI_MENU_ACTION4C(ui_menu_cal_prepare, UI_ACTION_DUMMY, UI_TEXT_CAL_PREPARE)
+UI_MENU_ACTION4C(ui_menu_calibrating_radius, UI_ACTION_DUMMY, UI_TEXT_CALIBRATING_RADIUS)
+UI_MENU_ACTION4C(ui_menu_calibrating_endstops,  UI_ACTION_DUMMY, UI_TEXT_CALIBRATING_ENDSTOPS)
+UI_MENU_ACTION4C(ui_menu_calibrating_height,  UI_ACTION_DUMMY, UI_TEXT_CALIBRATING_HEIGHT)
+UI_MENU_ACTION4C(ui_menu_calibrating_bed,  UI_ACTION_DUMMY, UI_TEXT_CALIBRATING_BED)
 
 // **** Bed leveling menu
 #ifdef SOFTWARE_LEVELING
@@ -435,7 +473,8 @@ UI_MENU_ACTIONCOMMAND(ui_menu_ext_origin,UI_TEXT_EXTR_ORIGIN,UI_ACTION_RESET_EXT
 #define UI_MENU_EXTCOND &ui_menu_ext_temp0,&ui_menu_ext_temp1,&ui_menu_ext_temp2,&ui_menu_ext_off0,&ui_menu_ext_off1,&ui_menu_ext_off2,&ui_menu_ext_sel0,&ui_menu_ext_sel1,&ui_menu_ext_sel2,
 #define UI_MENU_EXTCNT 9
 #else
-#define UI_MENU_EXTCOND &ui_menu_ext_temp0,&ui_menu_ext_off0,
+//#define UI_MENU_EXTCOND &ui_menu_ext_temp0,&ui_menu_ext_off0,
+#define UI_MENU_EXTCOND &ui_menu_ext_temp0,
 #define UI_MENU_EXTCNT 2
 #endif
 #if HAVE_HEATED_BED
@@ -446,8 +485,8 @@ UI_MENU_ACTIONCOMMAND(ui_menu_ext_origin,UI_TEXT_EXTR_ORIGIN,UI_ACTION_RESET_EXT
 #define UI_MENU_BEDCNT 0
 #endif
 
-#define UI_MENU_EXTRUDER {UI_MENU_ADDCONDBACK UI_MENU_BEDCOND UI_MENU_EXTCOND &ui_menu_go_epos,&ui_menu_ext_origin}
-UI_MENU(ui_menu_extruder,UI_MENU_EXTRUDER,UI_MENU_BACKCNT+UI_MENU_BEDCNT+UI_MENU_EXTCNT+2)
+#define UI_MENU_EXTRUDER {UI_MENU_ADDCONDBACK UI_MENU_EXTCOND UI_MENU_BEDCOND }
+UI_MENU(ui_menu_extruder,UI_MENU_EXTRUDER,UI_MENU_BACKCNT+UI_MENU_BEDCNT+UI_MENU_EXTCNT+0)
 
 // **** SD card menu
 
@@ -499,9 +538,15 @@ UI_MENU_ACTIONCOMMAND(ui_menu_quick_changefil,UI_TEXT_CHANGE_FILAMENT,UI_ACTION_
 #define UI_CHANGE_FIL_CNT 0
 #define UI_CHANGE_FIL_ENT
 #endif
-
-#define UI_MENU_QUICK {UI_MENU_ADDCONDBACK &ui_menu_home_all BABY_ENTRY ,&ui_menu_quick_speedmultiply,&ui_menu_quick_flowmultiply UI_TOOGLE_LIGHT_ENTRY UI_CHANGE_FIL_ENT,&ui_menu_quick_preheat_pla,&ui_menu_quick_preheat_abs,&ui_menu_quick_cooldown,&ui_menu_quick_origin,&ui_menu_quick_stopstepper MENU_PSON_ENTRY DEBUG_PRINT_EXTRA}
-UI_MENU(ui_menu_quick,UI_MENU_QUICK,8+BABY_CNT+UI_MENU_BACKCNT+MENU_PSON_COUNT+DEBUG_PRINT_COUNT+UI_TOGGLE_LIGHT_COUNT+UI_CHANGE_FIL_CNT)
+UI_MENU_ACTIONCOMMAND(ui_menu_set_advanced, UI_TEXT_SET_ADVANCED,UI_ACTION_SET_ADVANCED) // Toggle menu from Simple to Advanced
+UI_MENU_ACTIONCOMMAND(ui_menu_set_simple, UI_TEXT_SET_SIMPLE,UI_ACTION_SET_SIMPLE) // Toggle menu from Advanced to Simple
+// Printer Settings menu for Simple menu
+#define UI_MENU_QUICK {UI_MENU_ADDCONDBACK &ui_menu_quick_speedmultiply,&ui_menu_quick_flowmultiply UI_TOOGLE_LIGHT_ENTRY UI_CHANGE_FIL_ENT,&ui_menu_quick_preheat_pla,&ui_menu_quick_preheat_abs,&ui_menu_quick_cooldown,&ui_menu_home_all,&ui_menu_set_advanced,&ui_menu_quick_stopstepper MENU_PSON_ENTRY DEBUG_PRINT_EXTRA}
+UI_MENU(ui_menu_quick,UI_MENU_QUICK,8+UI_MENU_BACKCNT+MENU_PSON_COUNT+DEBUG_PRINT_COUNT+UI_TOGGLE_LIGHT_COUNT+UI_CHANGE_FIL_CNT)
+// Printer Settings menu for Advanced menu
+//#define UI_MENU_QUICK2 {UI_MENU_ADDCONDBACK &ui_menu_quick_speedmultiply,&ui_menu_quick_flowmultiply UI_TOOGLE_LIGHT_ENTRY UI_CHANGE_FIL_ENT,&ui_menu_quick_preheat_pla,&ui_menu_quick_preheat_abs,&ui_menu_quick_cooldown,&ui_menu_home_all,&ui_menu_set_simple,&ui_menu_quick_stopstepper MENU_PSON_ENTRY DEBUG_PRINT_EXTRA}
+#define UI_MENU_QUICK2 {UI_MENU_ADDCONDBACK &ui_menu_quick_speedmultiply,&ui_menu_quick_flowmultiply UI_TOOGLE_LIGHT_ENTRY UI_CHANGE_FIL_ENT,&ui_menu_quick_preheat_pla,&ui_menu_quick_preheat_abs,&ui_menu_quick_cooldown,&ui_menu_home_all,&ui_menu_quick_stopstepper MENU_PSON_ENTRY DEBUG_PRINT_EXTRA}
+UI_MENU(ui_menu_quick2,UI_MENU_QUICK2,8+UI_MENU_BACKCNT+MENU_PSON_COUNT+DEBUG_PRINT_COUNT+UI_TOGGLE_LIGHT_COUNT+UI_CHANGE_FIL_CNT)
 
 // **** Fan menu
 
@@ -689,14 +734,8 @@ UI_MENU_ACTION2C(ui_menu_eeprom_loaded, UI_ACTION_DUMMY, UI_TEXT_EEPROM_LOADED)
 #define UI_MENU_EEPROM_COND
 #define UI_MENU_EEPROM_CNT 0
 #endif
-#ifdef SOFTWARE_LEVELING
-#define UI_MENU_SL_COND ,&ui_menu_conf_level
-#define UI_MENU_SL_CNT 1
-UI_MENU_SUBMENU(ui_menu_conf_level, UI_TEXT_LEVEL, ui_menu_level)
-#else
 #define UI_MENU_SL_COND
 #define UI_MENU_SL_CNT 0
-#endif
 #if Z_HOME_DIR > 0
 #define UI_MENU_DELTA_COND ,&ui_menu_conf_delta
 #define UI_MENU_DELTA_CNT 1
@@ -705,16 +744,35 @@ UI_MENU_SUBMENU(ui_menu_conf_delta, UI_TEXT_ZCALIB, ui_menu_delta)
 #define UI_MENU_DELTA_COND
 #define UI_MENU_DELTA_CNT 0
 #endif
-#define UI_MENU_CONFIGURATION {UI_MENU_ADDCONDBACK &ui_menu_conf_general,&ui_menu_conf_accel,&ui_menu_conf_feed,&ui_menu_conf_extr UI_MENU_EEPROM_COND UI_MENU_DELTA_COND UI_MENU_SL_COND}
-UI_MENU(ui_menu_configuration,UI_MENU_CONFIGURATION,UI_MENU_BACKCNT+UI_MENU_EEPROM_CNT+UI_MENU_DELTA_CNT+UI_MENU_SL_CNT+4)
-// Main menu
+
+// Add debugging to advanced configuration menu instead of main menu
+UI_MENU_SUBMENU(ui_menu_conf_debug, UI_TEXT_DEBUGGING,ui_menu_debugging)
+
+// **** Advanced user menu (configuration)
+
+//#define UI_MENU_CONFIGURATION {UI_MENU_ADDCONDBACK &ui_menu_conf_general,&ui_menu_conf_accel,&ui_menu_conf_feed,&ui_menu_conf_extr,&ui_menu_conf_debug UI_MENU_EEPROM_COND UI_MENU_DELTA_COND UI_MENU_SL_COND}
+#define UI_MENU_CONFIGURATION {UI_MENU_ADDCONDBACK &ui_menu_conf_general,&ui_menu_conf_accel,&ui_menu_conf_feed,&ui_menu_conf_extr,&ui_menu_conf_debug UI_MENU_EEPROM_COND UI_MENU_DELTA_COND UI_MENU_SL_COND}
+UI_MENU(ui_menu_configuration,UI_MENU_CONFIGURATION,UI_MENU_BACKCNT+UI_MENU_EEPROM_CNT+UI_MENU_DELTA_CNT+UI_MENU_SL_CNT+5)
+
+// **** Define Main menu
 UI_MENU_SUBMENU(ui_menu_main1, UI_TEXT_QUICK_SETTINGS,ui_menu_quick)
 UI_MENU_SUBMENU(ui_menu_main2, UI_TEXT_POSITION,ui_menu_positions)
 UI_MENU_SUBMENU(ui_menu_main3, UI_TEXT_EXTRUDER,ui_menu_extruder)
 UI_MENU_SUBMENU(ui_menu_main4, UI_TEXT_DEBUGGING,ui_menu_debugging)
 UI_MENU_SUBMENU(ui_menu_main5, UI_TEXT_CONFIGURATION,ui_menu_configuration)
-#define UI_MENU_MAIN {UI_MENU_ADDCONDBACK  &ui_menu_main1,SD_PRINTFILE_ENTRY &ui_menu_main2,&ui_menu_main3,UI_MENU_FAN_COND UI_MENU_SD_COND &ui_menu_main4,&ui_menu_main5}
-UI_MENU(ui_menu_main,UI_MENU_MAIN,5+UI_MENU_BACKCNT+UI_MENU_SD_CNT+UI_MENU_FAN_CNT+SD_PRINTFILE_ENTRY_CNT)
+UI_MENU_SUBMENU(ui_menu_main6,UI_TEXT_ADJTEMPS,ui_menu_extruder)
+UI_MENU_SUBMENU(ui_menu_main7, UI_TEXT_QUICK_SETTINGS, ui_menu_quick2)
+
+// **** Advanced Main Menu
+//#define UI_MENU_MAIN {UI_MENU_ADDCONDBACK  &ui_menu_main7,SD_PRINTFILE_ENTRY &ui_menu_main6,&ui_menu_main2,UI_MENU_FAN_COND UI_MENU_SD_COND &ui_menu_main5}
+#define UI_MENU_MAIN {UI_MENU_ADDCONDBACK  &ui_menu_main7,SD_PRINTFILE_ENTRY &ui_menu_main6, UI_MENU_FAN_COND UI_MENU_SD_COND &ui_menu_main5}
+//UI_MENU(ui_menu_main,UI_MENU_MAIN,4+UI_MENU_BACKCNT+UI_MENU_SD_CNT+UI_MENU_FAN_CNT+SD_PRINTFILE_ENTRY_CNT)
+UI_MENU(ui_menu_main,UI_MENU_MAIN,3+UI_MENU_BACKCNT+UI_MENU_SD_CNT+UI_MENU_FAN_CNT+SD_PRINTFILE_ENTRY_CNT)
+
+// **** Simple Main Menu
+
+#define UI_MENU_SIMPLE {UI_MENU_ADDCONDBACK  &ui_menu_main1,SD_PRINTFILE_ENTRY &ui_menu_main6,UI_MENU_FAN_COND &ui_menu_conf_delta}
+UI_MENU(ui_menu_simple,UI_MENU_SIMPLE,3+UI_MENU_BACKCNT+UI_MENU_FAN_CNT+SD_PRINTFILE_ENTRY_CNT)
 
 /* Define menus accessible by action commands
 

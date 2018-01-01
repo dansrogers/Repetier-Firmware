@@ -124,6 +124,7 @@ What display type do you use?
 #define UI_ACTION_FAN_FULL              1054
 #define UI_ACTION_FEEDRATE_MULTIPLY     1055
 #define UI_ACTION_STEPPER_INACTIVE      1056
+#define UI_ACTION_HORIZONTAL_RADIUS     1057
 #define UI_ACTION_PID_PGAIN             1058
 #define UI_ACTION_PID_IGAIN             1059
 #define UI_ACTION_PID_DGAIN             1060
@@ -198,6 +199,11 @@ What display type do you use?
 #define UI_ACTION_SET_P2				4014
 #define UI_ACTION_SET_P3				4015
 #define UI_ACTION_CALC_LEVEL			4016
+#define UI_ACTION_AUTOLEVEL_FULL        4017
+#define UI_ACTION_SET_ADVANCED          4018
+#define UI_ACTION_SET_SIMPLE            4019
+#define UI_ACTION_CLEAN_BED1            4020
+#define UI_ACTION_CLEAN_BED2            4021
 
 #define UI_ACTION_SHOW_USERMENU1        4101
 #define UI_ACTION_SHOW_USERMENU2        4102
@@ -386,7 +392,12 @@ extern const int8_t encoder_table[16] PROGMEM ;
 
 #if  FEATURE_CONTROLLER == CONTROLLER_RAMBO
 #undef SDCARDDETECT
+#if MOTHERBOARD == 301
 #define SDCARDDETECT 81
+#endif
+#if MOTHERBOARD == 302
+#define SDCARDDETECT 15
+#endif
 #undef SDCARDDETECTINVERTED
 #define SDCARDDETECTINVERTED 0
 #undef SDSUPPORT
@@ -1040,6 +1051,7 @@ void uiCheckSlowKeys(int &action) {}
 #define UI_COLS 20
 #define UI_ROWS 4
 #define BEEPER_TYPE 1
+#if MOTHERBOARD == 301 //Rambo
 #define BEEPER_PIN             79
 #define UI_DISPLAY_RS_PIN      70
 #define UI_DISPLAY_RW_PIN      -1
@@ -1052,12 +1064,43 @@ void uiCheckSlowKeys(int &action) {}
 #define UI_DISPLAY_D5_PIN      73
 #define UI_DISPLAY_D6_PIN      74
 #define UI_DISPLAY_D7_PIN      75
+// inverting encoder directions from configuration.h file
+#if UI_ENCODER_DIR == 0
+#define UI_ENCODER_A           77
+#define UI_ENCODER_B           76
+#else
 #define UI_ENCODER_A           76
 #define UI_ENCODER_B           77
+#endif
 #define UI_ENCODER_CLICK       78
 #define UI_KILL_PIN            80
+#endif
+#if MOTHERBOARD == 302 // mini-rambo
+#define BEEPER_PIN             84
+#define UI_DISPLAY_RS_PIN      82
+#define UI_DISPLAY_RW_PIN      -1
+#define UI_DISPLAY_ENABLE_PIN  18
+#define UI_DISPLAY_D0_PIN      -1
+#define UI_DISPLAY_D1_PIN      -1
+#define UI_DISPLAY_D2_PIN      -1
+#define UI_DISPLAY_D3_PIN      -1
+#define UI_DISPLAY_D4_PIN      19
+#define UI_DISPLAY_D5_PIN      70
+#define UI_DISPLAY_D6_PIN      85
+#define UI_DISPLAY_D7_PIN      71
+// inverting encoder directions from configuration.h file
+#if UI_ENCODER_DIR == 0
+#define UI_ENCODER_A           72
+#define UI_ENCODER_B           14
+#else
+#define UI_ENCODER_A           72
+#define UI_ENCODER_B           14
+#endif
+#define UI_ENCODER_CLICK       9
+#define UI_KILL_PIN           32
+#endif
 #define UI_DELAYPERCHAR       50
-#define UI_INVERT_MENU_DIRECTION 0
+#define UI_INVERT_MENU_DIRECTION 1
 #if UI_MAIN
 void uiInitKeys() {
   UI_KEYS_INIT_CLICKENCODER_LOW(UI_ENCODER_A,UI_ENCODER_B);
@@ -1282,7 +1325,8 @@ void ui_check_slow_keys(int &action) {}
 #include "uilang.h"
 #endif
 
-#define UI_VERSION_STRING "Repetier " REPETIER_VERSION
+#define UI_VERSION_STRING "Repetier v " REPETIER_VERSION
+#define UI_FW_DATE "FW Date " FIRMWARE_DATE
 
 #ifdef UI_HAS_I2C_KEYS
 #define COMPILE_I2C_DRIVER

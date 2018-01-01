@@ -38,6 +38,7 @@ have problems with other modules using the eeprom */
 #define EPR_Z_HOMING_FEEDRATE      35
 #define EPR_MAX_JERK               39
 //#define EPR_OPS_MIN_DISTANCE       43
+#define EPR_ADVANCED_USER          43
 #define EPR_MAX_ZJERK              47
 #define EPR_X_MAX_ACCEL            51
 #define EPR_Y_MAX_ACCEL            55
@@ -327,6 +328,23 @@ public:
         return ROD_RADIUS;
 #endif
     }
+    
+    // Advanced Menu
+    static inline int16_t isAdvanced(){
+#if EEPROM_MODE !=0
+        return HAL::eprGetInt16(EPR_ADVANCED_USER);
+#else
+        return ADVANCED_USER;
+#endif
+    }
+    static inline void setIsAdvanced(int16_t advmenu) {
+#if EEPROM_MODE != 0
+        HAL::eprSetInt16(EPR_ADVANCED_USER,advmenu);
+        uint8_t newcheck = computeChecksum();
+        if(newcheck != HAL::eprGetByte(EPR_INTEGRITY_BYTE))
+            HAL::eprSetByte(EPR_INTEGRITY_BYTE,newcheck);
+#endif
+    }    
     static inline int16_t deltaTowerXOffsetSteps() {
 #if EEPROM_MODE != 0
         return HAL::eprGetInt16(EPR_DELTA_TOWERX_OFFSET_STEPS);

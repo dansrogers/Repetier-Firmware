@@ -78,8 +78,6 @@ void SDCard::initsd()
     if(READ(SDCARDDETECT) != SDCARDDETECTINVERTED)
         return;
 #endif
-    /*if(dir[0].isOpen())
-        dir[0].close();*/
     if(!fat.begin(SDSS, SPI_FULL_SPEED))
     {
         Com::printFLN(Com::tSDInitFail);
@@ -89,10 +87,6 @@ void SDCard::initsd()
     Printer::setMenuMode(MENU_MODE_SD_MOUNTED, true);
 
     fat.chdir();
-    if(selectFile("init.g", true))
-    {
-        startPrint();
-    }
 #endif
 }
 
@@ -128,6 +122,7 @@ void SDCard::pausePrint(bool intern)
     if(!sd.sdactive) return;
     sdmode = 2; // finish running line
     Printer::setMenuMode(MENU_MODE_SD_PAUSED, true);
+    /*
     if(intern) {
         Commands::waitUntilEndOfAllBuffers();
         sdmode = 0;
@@ -135,27 +130,27 @@ void SDCard::pausePrint(bool intern)
         Printer::moveToReal(IGNORE_COORDINATE, IGNORE_COORDINATE, IGNORE_COORDINATE,
                             Printer::memoryE - RETRACT_ON_PAUSE,
                             Printer::maxFeedrate[E_AXIS] / 2);
-#if DRIVE_SYSTEM == DELTA
-        Printer::moveToReal(0, 0.9 * EEPROM::deltaMaxRadius(), IGNORE_COORDINATE, IGNORE_COORDINATE, Printer::maxFeedrate[X_AXIS]);
-#else
-        Printer::moveToReal(Printer::xMin, Printer::yMin + Printer::yLength, IGNORE_COORDINATE, IGNORE_COORDINATE, Printer::maxFeedrate[X_AXIS]);
-#endif
+        Printer::moveToReal(0,0, IGNORE_COORDINATE, IGNORE_COORDINATE, Printer::homingFeedrate[Z_AXIS]);
+        Printer::moveToReal(IGNORE_COORDINATE,IGNORE_COORDINATE, Printer::memoryZ + Z_LIFT_ON_PAUSE, IGNORE_COORDINATE, Printer::homingFeedrate[Z_AXIS]);
         Printer::lastCmdPos[X_AXIS] = Printer::currentPosition[X_AXIS];
         Printer::lastCmdPos[Y_AXIS] = Printer::currentPosition[Y_AXIS];
         Printer::lastCmdPos[Z_AXIS] = Printer::currentPosition[Z_AXIS];
         GCode::executeFString(PSTR(PAUSE_START_COMMANDS));
     }
+    */
 }
 
 void SDCard::continuePrint(bool intern)
 {
     if(!sd.sdactive) return;
+    /*
     if(intern) {
-        GCode::executeFString(PSTR(PAUSE_END_COMMANDS));
-        Printer::GoToMemoryPosition(true, true, false, false, Printer::maxFeedrate[X_AXIS]);
-        Printer::GoToMemoryPosition(false, false, true, false, Printer::maxFeedrate[Z_AXIS] / 2.0f);
+        //GCode::executeFString(PSTR(PAUSE_END_COMMANDS));
+        Printer::GoToMemoryPosition(true, true, false, false, Printer::homingFeedrate[Z_AXIS]);
+        Printer::GoToMemoryPosition(false, false, true, false, Printer::homingFeedrate[Z_AXIS] / 2.0f);
         Printer::GoToMemoryPosition(false, false, false, true, Printer::maxFeedrate[E_AXIS] / 2.0f);
     }
+    */
     Printer::setMenuMode(MENU_MODE_SD_PAUSED, false);
     sdmode = 1;
 }
@@ -463,20 +458,6 @@ void SDCard::makeDirectory(char *filename)
     }
 }
 
-#ifdef GLENN_DEBUG
-void SDCard::writeToFile()
-{
-  size_t nbyte;
-  char szName[10];
-
-  strcpy(szName, "Testing\r\n");
-  nbyte = file.write(szName, strlen(szName));
-  Com::print("L=");
-  Com::print((long)nbyte);
-  Com::println();
-}
-
 #endif
 
-#endif
 

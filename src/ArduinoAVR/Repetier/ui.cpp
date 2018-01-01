@@ -809,10 +809,11 @@ void UIDisplay::initialize()
     {
 #endif
         for(uint8_t y=0; y<UI_ROWS; y++) displayCache[y][0] = 0;
-        printRowP(0, versionString);
+        printRowP(0, PSTR(UI_PRINTER_COMPANY));
         printRowP(1, PSTR(UI_PRINTER_NAME));
 #if UI_ROWS>2
-        printRowP(UI_ROWS-1, PSTR(UI_PRINTER_COMPANY));
+        printRowP(UI_ROWS-2, PSTR(UI_FW_DATE));
+        printRowP(UI_ROWS-1, versionString); // printRowP(UI_ROWS-1, PSTR(UI_PRINTER_NAME));
 #endif
 #if UI_DISPLAY_TYPE == DISPLAY_U8G
     }
@@ -1240,6 +1241,11 @@ void UIDisplay::parse(const char *txt,bool ram)
             if(c2=='m')
             {
                 addInt(Printer::feedrateMultiply,3);
+                break;
+            }
+            if(c2=='h')
+            {
+                addFloat(Printer::radius0,3,2);
                 break;
             }
             // Extruder output level
@@ -1994,7 +2000,7 @@ void UIDisplay::pushMenu(const UIMenu *men,bool refresh)
         {
             //This exception can happen if the card was unplugged or modified.
             menuTop[menuLevel] = 0;
-            menuPos[menuLevel] = UI_MENU_BACKCNT; // if top entry is back, default to next useful item
+            menuPos[menuLevel] = 0;//UI_MENU_BACKCNT; // if top entry is back, default to next useful item
         }
     }
     else
@@ -2003,7 +2009,7 @@ void UIDisplay::pushMenu(const UIMenu *men,bool refresh)
         // With or without SDCARD, being here means the menu is not a files list
         // Reset menu to top
         menuTop[menuLevel] = 0;
-        menuPos[menuLevel] = UI_MENU_BACKCNT; // if top entry is back, default to next useful item
+        menuPos[menuLevel] = 0;//UI_MENU_BACKCNT; // if top entry is back, default to next useful item
     }
     if(refresh)
         refreshPage();
@@ -2029,7 +2035,13 @@ int UIDisplay::okAction(bool allowMoves)
         menuLevel = 1;
         menuTop[1] = 0;
         menuPos[1] =  UI_MENU_BACKCNT; // if top entry is back, default to next useful item
+        int16_t advanced_menu = EEPROM::isAdvanced(); // grab what menu system from eeprom
+        // setup menu system, full menus or simple;
+        if (advanced_menu != 0)
         menu[1] = &ui_menu_main;
+        else
+          menu[1] = &ui_menu_simple;
+        
         BEEP_SHORT
         return 0;
     }
@@ -2462,6 +2474,9 @@ bool UIDisplay::nextPreviousAction(int8_t next, bool allowMoves)
         if(tmp < UI_SET_MIN_EXTRUDER_TEMP) tmp = 0;
         else if(tmp > UI_SET_MAX_EXTRUDER_TEMP) tmp = UI_SET_MAX_EXTRUDER_TEMP;
         Extruder::setTemperatureForExtruder(tmp,0);
+#if NUM_EXTRUDER > 1
+        Extruder::setTemperatureForExtruder(tmp,1);
+#endif
     }
     break;
     case UI_ACTION_EXTRUDER1_TEMP:
@@ -2474,6 +2489,9 @@ bool UIDisplay::nextPreviousAction(int8_t next, bool allowMoves)
         if(tmp < UI_SET_MIN_EXTRUDER_TEMP) tmp = 0;
         else if(tmp > UI_SET_MAX_EXTRUDER_TEMP) tmp = UI_SET_MAX_EXTRUDER_TEMP;
         Extruder::setTemperatureForExtruder(tmp,1);
+#if NUM_EXTRUDER > 1
+        Extruder::setTemperatureForExtruder(tmp,0);
+#endif
     }
 #endif
     break;
@@ -2495,6 +2513,13 @@ bool UIDisplay::nextPreviousAction(int8_t next, bool allowMoves)
         int fr = Printer::feedrateMultiply;
         INCREMENT_MIN_MAX(fr,1,25,500);
         Commands::changeFeedrateMultiply(fr);
+    }
+    break;
+    case UI_ACTION_HORIZONTAL_RADIUS:
+    {
+      INCREMENT_MIN_MAX(Printer::radius0, 0.01,60,150);
+      Commands::changeHorizontalRadius(Printer::radius0);
+      EEPROM::storeDataIntoEEPROM(false);
     }
     break;
     case UI_ACTION_FLOWRATE_MULTIPLY:
@@ -3118,6 +3143,49 @@ int UIDisplay::executeAction(int action, bool allowMoves)
         }
         break;
 #endif
+        case UI_ACTION_CLEAN_BED1:
+        break;
+        case UI_ACTION_CLEAN_BED2:
+        break;
+
+// ##################################################################################################################        
+// ############ HERES WHERE THE MACHINE SPECIFIC PROBING CODE FOR HE280/ACCEL HOTENDS IS ADAPTED ####################
+// ##################################################################################################################
+
+        case UI_ACTION_AUTOLEVEL_FULL: 
+#if SDSUPPORT == 1
+          menuLevel = 0;
+
+          if(sd.sdactive){
+            sd.startWrite("g29cal.gcode");
+            sd.file.write("G29", strlen("G29"));
+            sd.finishWrite();
+            if(sd.selectFile("g29cal.gcode", true)){
+              sd.startPrint();
+            }else{
+              GCode::executeFString(PSTR("M117 SD CARD ERROR"));
+            }
+          }else{
+            GCode::executeFString(PSTR("M117 INSERT SD CARD"));
+          }
+
+#endif
+         break;
+         
+ // ################# END OF MACHINE SPECIFIC PROBING CODES        
+         
+        case UI_ACTION_SET_ADVANCED: // Set menu to Advanced (Full) Menu
+        {
+          EEPROM::setIsAdvanced(1);
+          menuLevel = 0;
+        }
+        break;
+        case UI_ACTION_SET_SIMPLE:  // Set menu to Simple Menu
+        {
+          EEPROM::setIsAdvanced(0);
+          menuLevel = 0;
+        }
+        break;
         case UI_ACTION_SET_P1:
 #if SOFTWARE_LEVELING
             for (uint8_t i = 0; i < 3; i++)
@@ -3276,7 +3344,7 @@ void UIDisplay::slowAction(bool allowMoves)
         if(encodeChange) // encoder changed
         {
             nextPreviousAction(encodeChange, allowMoves);
-            BEEP_SHORT
+            //BEEP_SHORT //Disabled to not beep when scrolling through menus
             refresh = 1;
         }
         if(lastAction != lastButtonAction)

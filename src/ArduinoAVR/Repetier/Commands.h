@@ -40,6 +40,7 @@ public:
     static void setFanSpeed(int speed,bool wait); /// Set fan speed 0..255
     static void changeFeedrateMultiply(int factorInPercent);
     static void changeFlowrateMultiply(int factorInPercent);
+    static void changeHorizontalRadius(float hradius);
     static void reportPrinterUsage();
     static void emergencyStop();
     static void checkFreeMemory();
